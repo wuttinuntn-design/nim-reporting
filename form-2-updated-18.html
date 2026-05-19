@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reporting Channels — NiM Express × SEAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&family=Kanit:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+/* ================================================================
+   VARIABLES
+================================================================ */
+:root {
+  --br:  #3fa9b4;
+  --brd: #2b7e88;
+  --brl: #edf8fa;
+  --brm: #a8dde3;
+  --ok:  #16a34a;
+  --r1: 9px; --r2: 13px; --r3: 20px;
+  --font: 'Sarabun', sans-serif;
+  --font-h: 'Kanit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: #f5fafb; color: #1a1a1a; min-height: 100vh; }
+
+/* ================================================================
+   HEADER
+================================================================ */
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #ddf0f3;
+  padding: 12px 20px 9px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  position: sticky; top: 0; z-index: 10;
+}
+.logo-row { display: flex; align-items: center; gap: 18px; }
+.logo-row img { height: 44px; object-fit: contain; display: block; }
+.logo-div { width: 1px; height: 34px; background: #d0e8ec; }
+.tagline { font-size: 11px; color: #7ab5bc; letter-spacing: .6px; }
+
+/* ================================================================
+   LAYOUT
+================================================================ */
+.page { max-width: 620px; margin: 0 auto; padding: 24px 16px 64px; }
+
+/* ================================================================
+   STEPPER
+================================================================ */
+.step-bar { display: flex; align-items: flex-start; margin-bottom: 24px; }
+.si { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; position: relative; }
+.si:not(:last-child)::after {
+  content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 2px;
+  background: #d0e8ec; transition: background .3s; z-index: 0;
+}
+.si.done:not(:last-child)::after { background: var(--ok); }
+.sd {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid #d0e8ec; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: #aac8cc;
+  transition: all .25s; position: relative; z-index: 1;
+}
+.sd i { font-size: 14px; }
+.si.active .sd { border-color: var(--br); background: var(--br); color: #fff; }
+.si.done .sd   { border-color: var(--ok); background: var(--ok); color: #fff; }
+.sl { font-size: 10px; color: #aac8cc; white-space: nowrap; transition: color .25s; text-align: center; }
+.si.active .sl { color: var(--br); font-weight: 600; }
+.si.done .sl   { color: var(--ok); }
+
+/* ================================================================
+   CARD
+================================================================ */
+.card {
+  background: #fff; border: 1px solid #ddf0f3;
+  border-radius: var(--r3); padding: 26px 22px;
+  animation: fadeUp .22s ease;
+}
+@keyframes fadeUp { from { opacity:0; transform:translateY(9px); } to { opacity:1; transform:translateY(0); } }
+.ct { font-family: var(--font-h); font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.cs { font-size: 13px; color: #7ab5bc; margin-bottom: 18px; display: flex; align-items: center; gap: 5px; }
+
+/* ================================================================
+   FORM ELEMENTS
+================================================================ */
+.fl { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #4a8a92; margin-bottom: 7px; }
+.fl i { font-size: 15px; }
+select, textarea {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #cce8ec; border-radius: var(--r1);
+  font-size: 14px; font-family: var(--font); color: #1a1a1a; background: #fff;
+  outline: none; transition: border .18s, box-shadow .18s; appearance: none;
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233fa9b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; cursor: pointer;
+}
+select:focus, textarea:focus { border-color: var(--br); box-shadow: 0 0 0 3px rgba(63,169,180,.11); }
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+/* ================================================================
+   TOPIC GRID
+================================================================ */
+.tgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.tc {
+  border: 1.5px solid #cce8ec; border-radius: var(--r2);
+  padding: 13px 11px; cursor: pointer; transition: all .18s;
+  display: flex; align-items: center; gap: 10px; background: #fff; user-select: none;
+}
+.tc:hover { border-color: var(--br); background: var(--brl); }
+.tc.sel  { border-color: var(--br); background: var(--brl); border-width: 2px; }
+.tc.dis  { opacity: .26; pointer-events: none; }
+.tc.wide { grid-column: span 2; }
+.tci {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--brl); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .18s;
+}
+.tc.sel .tci { background: var(--br); }
+.tci i { font-size: 19px; color: var(--br); transition: color .18s; }
+.tc.sel .tci i { color: #fff; }
+.tcn { font-size: 13.5px; font-weight: 600; }
+
+/* ================================================================
+   SUB LIST
+================================================================ */
+.sub-list { display: flex; flex-direction: column; gap: 7px; }
+.sub-item {
+  border: 1.5px solid #cce8ec; border-radius: var(--r1);
+  padding: 12px 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 11px;
+  background: #fff; transition: all .18s; user-select: none;
+}
+.sub-item:hover { border-color: var(--br); background: var(--brl); }
+.sub-item.sel  { border-color: var(--br); background: var(--brl); border-width: 2px; }
+.snum {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--brl); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--brd); flex-shrink: 0; transition: all .18s;
+}
+.sub-item.sel .snum { background: var(--br); color: #fff; }
+.stxt { font-size: 13.5px; font-weight: 500; line-height: 1.4; }
+
+/* ================================================================
+   CHIPS
+================================================================ */
+.chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 14px; border: 1.5px solid #cce8ec; border-radius: 20px;
+  font-size: 13px; cursor: pointer; background: #fff;
+  transition: all .18s; display: flex; align-items: center; gap: 5px;
+  font-family: var(--font); user-select: none;
+}
+.chip:hover { border-color: var(--br); background: var(--brl); }
+.chip.sel   { border-color: var(--br); background: var(--br); color: #fff; font-weight: 600; }
+.chip.sel i { color: #fff; }
+.chip i { font-size: 13px; color: var(--brm); }
+.hint { font-size: 12px; color: #aac8cc; margin-top: 10px; display: flex; align-items: center; gap: 4px; }
+.hint i { font-size: 13px; }
+
+/* ================================================================
+   TAG BAR
+================================================================ */
+.tag-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 13px; }
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px 4px 8px; border-radius: 20px;
+  background: var(--brl); border: 1px solid var(--brm);
+  font-size: 12px; font-weight: 600; color: var(--brd);
+}
+.tag i { font-size: 13px; }
+
+/* ================================================================
+   ENTRY CARDS (summary)
+================================================================ */
+.ec {
+  border: 1px solid #ddf0f3; border-radius: var(--r2);
+  padding: 13px 15px; margin-bottom: 9px; background: #fafefe;
+  display: flex; gap: 11px; align-items: flex-start;
+}
+.en {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--br); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.eb { flex: 1; }
+.et { font-size: 14px; font-weight: 700; color: var(--brd); display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+.et i { font-size: 14px; color: var(--br); }
+.esb { font-size: 12.5px; color: #555; display: flex; align-items: baseline; gap: 4px; }
+.esb i { font-size: 12px; color: var(--brm); flex-shrink: 0; }
+.echips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.echip {
+  font-size: 11.5px; padding: 2px 9px; border-radius: 12px;
+  background: var(--brl); color: var(--brd); border: 1px solid var(--brm);
+}
+.edt { font-size: 12.5px; color: #444; margin-top: 5px; padding-top: 5px; border-top: 1px solid #e8f5f7; line-height: 1.5; }
+
+/* ================================================================
+   IMAGE UPLOAD
+================================================================ */
+.img-upload-area {
+  border: 2px dashed #cce8ec; border-radius: var(--r2);
+  padding: 18px 14px; text-align: center; cursor: pointer;
+  transition: border-color .18s, background .18s; position: relative; margin-top: 4px;
+}
+.img-upload-area:hover, .img-upload-area.drag-over { border-color: var(--br); background: var(--brl); }
+.img-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.img-upload-icon { font-size: 26px; color: var(--brm); margin-bottom: 5px; }
+.img-upload-hint { font-size: 12.5px; color: #7ab5bc; }
+.img-upload-hint strong { color: var(--brd); }
+.img-err { font-size: 11.5px; color: #e53e3e; margin-top: 6px; display: none; }
+.img-preview-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 10px; }
+.img-thumb { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #cce8ec; }
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.img-thumb-del {
+  position: absolute; top: 3px; right: 3px;
+  background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 50%;
+  width: 20px; height: 20px; cursor: pointer; font-size: 11px;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+/* summary image thumbs */
+.ec-imgs { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.ec-img-thumb { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; border: 1px solid #ddf0f3; cursor: pointer; }
+/* edit button in summary */
+.btn-edit-entry {
+  padding: 5px 11px; border-radius: var(--r1);
+  border: 1.5px solid #cce8ec; background: #fff; color: var(--brd);
+  font-size: 12px; font-family: var(--font); font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 4px;
+  transition: all .18s; white-space: nowrap;
+  position: absolute; top: 11px; right: 11px;
+}
+.btn-edit-entry:hover { border-color: var(--br); background: var(--brl); }
+.ec { position: relative; padding-right: 80px; }
+.ec-actions { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+
+/* ================================================================
+   CHOICE BOX
+================================================================ */
+.choice-box { border: 1px solid #ddf0f3; border-radius: var(--r2); padding: 16px; background: #fafefe; margin-top: 10px; }
+.cbox-title { font-size: 14px; font-weight: 600; margin-bottom: 11px; display: flex; align-items: center; gap: 5px; }
+.cbox-title i { color: var(--br); }
+.cg { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.cbtn {
+  padding: 13px 10px; border-radius: var(--r1);
+  border: 1.5px solid #cce8ec; background: #fff;
+  cursor: pointer; font-size: 13.5px; font-weight: 600; font-family: var(--font);
+  display: flex; flex-direction: column; align-items: center; gap: 6px; transition: all .18s;
+}
+.cbtn:hover { border-color: var(--br); background: var(--brl); }
+.cbtn i { font-size: 23px; color: var(--br); }
+
+/* ================================================================
+   BUTTONS
+================================================================ */
+.brow { display: flex; gap: 8px; margin-top: 22px; justify-content: flex-end; }
+.btn-back {
+  padding: 10px 18px; border-radius: var(--r1);
+  border: 1.5px solid #cce8ec; background: #fff; color: #5a8a92;
+  font-size: 14px; font-family: var(--font); font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all .18s;
+}
+.btn-back:hover { background: var(--brl); border-color: var(--br); }
+.btn-primary {
+  padding: 10px 20px; border-radius: var(--r1);
+  border: none; background: var(--br); color: #fff;
+  font-size: 14px; font-family: var(--font); font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background .18s;
+}
+.btn-primary:hover { background: var(--brd); }
+.btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+.btn-success {
+  padding: 10px 20px; border-radius: var(--r1);
+  border: none; background: var(--ok); color: #fff;
+  font-size: 14px; font-family: var(--font); font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background .18s;
+}
+.btn-success:hover { background: #15803d; }
+.btn-success:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ================================================================
+   SUCCESS
+================================================================ */
+.success-screen { text-align: center; padding: 44px 16px; }
+.success-screen .sico { font-size: 60px; color: var(--ok); display: block; margin-bottom: 14px; }
+.success-screen h2 { font-family: var(--font-h); font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.success-screen p { font-size: 14px; color: #7ab5bc; line-height: 1.7; }
+
+/* ================================================================
+   PANELS
+================================================================ */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ================================================================
+   RESPONSIVE
+================================================================ */
+@media (max-width: 480px) {
+  .page { padding: 16px 12px 60px; }
+  .card { padding: 20px 15px; }
+  .sl { display: none; }
+  .logo-row img { height: 36px; }
+  .cg { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="logo-row">
+    <img src="data:image/webp;base64,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" alt="NiM Express">
+    <div class="logo-div"></div>
+    <img src="data:image/webp;base64,UklGRswIAABXRUJQVlA4IMAIAABwLACdASqgAEYAPm0ukkWkIqGU2Z+IQAbEsYBq2w4u70RwAymFvl+b0e7Y7zAecL0M3Umbzr/gslQ8X/2Ttg/yfSe+XvYfl5sqvuP5aezPgftc/5L8qvyq5QQAH5f/Uf9n4dGpl33/y/qi/oX+q/MPmoPO/YD/k39h/4/9u/qv7VfH1/1+ZX88/zX/i/zfwGfzb+t/8rsBfuh7Fn7QKngl3e3j2tAFmuXHGe8k4kY+swtBh2oCB1iFbJ69lNbBgv7th/gtAxbiNNm0BS3wlOOwWDQaWy6mFvyJ40BvViG1WUBBJImKuwmRw2hitZCHxKM17kYPsJtPHD9nospFJAx/PcNfBicwHdpC8ZVPlLbvJvA7kgGkd8S8F/0zxuQiLB6gdJNJJ6CjjQPj0lXeiUiLSaZS/VL3NjCDqH8CjTz8+mrcaOvM0MUD6KI0P9drh82ppyG02/WTIKhsQdGZ84VbZB7SDdvXPfkbfu4AAP789CpaDC3F+DRTl/MAbNnayG9qjqmQzqdcaefutETCPb9+oYRjTHMx0vt7bktB0E8+cVAb/HrTbUwLGn/5CpfwgXhhF4W7ptvlRSynkiAa1sNFjwgkASsVYr/cAYv324xpkyrWM3wf1btwtPyPFpL7HHsZSuBPDHnmvWd5WHaJ8v/+q3wal5XdV4O/0v4pUe+GiME34siaR7ls78KIfdCsAfvlag5zaHQ2Y474v2mUzvz6Y3BDi6rWH+Vk1VQ/4Wp+furHTe7mrGIYP5NqIT7r/L4SprJbYTvP7FShHl3pOWzgqCtb6IsTvEDL/hdX64lEXc887CfvXbI5wbFxZ0xLM2oTkXAF6EUi341hzzA65hbeivYyqzjctOZm4ksFE/N+HGI0/hdcxym99c19j8akEvA7wwGDTWVdpnVeF963Tk3DkCniyGxRWPLrUS0M0kT8YOQzVf+Uq2/MAT4ZTzSbT+nef/z0mSr1RrqLcI6PrBsKgHlR2UlwUrD4Uh9Cs81o53rdayqZtRINxgHp27+FlaHC0h+lTwBpXmqlKY1haKgMREoAvHTsSSjYM44f4TyYT855vKBk0MdAYkDycnG1QmZ7sDM3iI7GBQ8jquFfVRNkRVK67EGRF+DJ2zVHCgXTMikF5ROtoCny6a16jJ+n0UeGiE79OGjRLx5vU8F65QEHXwxG9LuVqy/Iso+lfuUrTJ5R1XSb+8oJRYvZeRdCcQwYA37RvhEhGYaycV5cPoKMKz/gkSWGT2toYl/eKKJE7iBBkrRlHdqeY7uYaTxhH9tVEdrnGGsH7hukMbLMrp4ankM1rJOxYxgyv7GvSl/yD5vyjC+XvoafK6+NKHcGNUcFVqXVrORnTB3XDy4tCQdWp/q8Awcgqup+kVuA7+wsWjCLdgnNDmt85PQmTA9vV6NdwBp2WOhniLiuHxIBKIxb6ki7+0e7qPSwW2L9w6b8agqAV3Z8cC2WqOPD6l6MqHQE9pYDJHaqBFxCWsvYWh+Ad9VWl7UIKKd/hmNdlAfUP8pr92Fwy/o5MFUroMCX+27GOcst6nJRgaruDtXxm0NXqMPVGFnLuwuYBjTZL1Y6b502VwS6R81zeKnaZcXzPHGh5ZiZ2Pd8I44vhvPWjkdU+lC+mVMmdfKFOkM7u5rbJTdSujh0xie92WNLEa/J+qTqt7jGeGNBH8kVgogKQJnF++zz1P5CjJX4fZLUcQhEjgijQG2oHKfGGfk23zXjjuwWpfuP7TD7CdfLeHL27wSR7NnWIuJ2Rru6TvU73kchQFZNrOks8ihK1dd3gerSOurf6tYEJTpuANbd8KEaKWj1agZS7so8JkoLp+Q1apsg8wuw5YNIBwX+BVjJew5037hZFUGFYgwxpg4kq0C3DyiZ/ikXjkT8gNfCsIWVYWBDGtXIUqFaOs9oN4e4XrJs1v/bIB5Xa1FBA5BX6yN0m0h7//y7z4Q4JAuTCxhf7GcrQLtpoTm44/RfP/nQnlvSOKhghKwdxWxP8TPmrkwA5OUPSiy3wk5E1RMYkrJL6L7D0z+35qJH5sxFfXpLjQvmqwk2D85WY6xA3sC45E9+9AUDhaV9M5P1/PsZtk4RshW//jXyKOVte33zMKuBUKxiIg+vZdo+PVLzVRiH3SL7cnyJjF3+hokZQGNtlTG4HabzvWBzYhoMgXkSvAVydlZ8nsgPMNjg/jagvun+qqsPEeof8kTMRgNBr/OytSFnYYSoO6kJFMyTIQqiHwZTW3rEpVCj73aQP/V7FQPhzfLu0N2spxS3NYTs5toEGtTJeAQxaTx1fDrOWT5LCt6c6TKfYNjE4Kls9BmZ2Lqg1sbbYUfj5P/i5zn7h2/Rmm/l9SLHo60kUiJhL6+ypRGCxbOfIAkGRMVpP/nVkjMv+AVkxPf06wOTevKCu8Uk7nSGz/1Fzq33xSxK82qkcGbaISBda/twV2d7v/Ng3rFc4Via/gUJN//TL+R39jj4Uz35AVdav6NyQT5rIwUMQShfL96OFEWiMFcQgD7hcWSD/1487f3Gxgy0tW3JoSzgN/TeDZk9TTd/krTiy2Er/Tl6QHod6D5c/I9R/qFjcyTjZVT7YalrKsIr02Vy4CVSPTxSg44HdeqHYgTlpKDhfI3rdabe5sE1eqmo6PiX1p3eFdmuZoOT0wUWiqJi2T+tWjsbbyCm0v/ieNb87eg4nx9IUzhcZy82l9d9Ps0VlZyp/iGUtLbvc3uq9tNMW5EVr35BBfp2f51lElDgm7xBlBbfjw0ju8O8EY4Xe8Zx3SxULcU2tnR150TRpS/WG1MURQ7qRsRbExRts4EgizuOf8H1jKhyZR+G/biGmN4lu9AvrGlYDETJMO2xA6KmrGIYiEOwUnYyhf5bmhwZx7EbR4ET/90Oio3aX7ACHqjLU6MOqhBQAA+tq8YcTFuWHX/fDV67QC+c+jnJ8lCtLa9zqycWnZBoFVDvBtz6BufN5SoDkxU1N3JkBbRj6z4HSgugTE205IAAAA==" alt="SEAL Cold Chain">
+  </div>
+  <span class="tagline">Reporting Channels — การรายงานจากสาขา</span>
+</header>
+
+<main class="page">
+
+  <!-- STEPPER -->
+  <nav class="step-bar" aria-label="ขั้นตอน">
+    <div class="si active" id="s1"><div class="sd"><i class="ti ti-building-store"></i></div><span class="sl">สาขา</span></div>
+    <div class="si" id="s2"><div class="sd"><i class="ti ti-layout-grid"></i></div><span class="sl">หัวข้อหลัก</span></div>
+    <div class="si" id="s3"><div class="sd"><i class="ti ti-list-details"></i></div><span class="sl">หัวข้อย่อย</span></div>
+    <div class="si" id="s4"><div class="sd"><i class="ti ti-checkup-list"></i></div><span class="sl">ตัวเลือก</span></div>
+    <div class="si" id="s5"><div class="sd"><i class="ti ti-pencil"></i></div><span class="sl">รายละเอียด</span></div>
+    <div class="si" id="s6"><div class="sd"><i class="ti ti-circle-check"></i></div><span class="sl">ยืนยัน</span></div>
+  </nav>
+
+  <div class="card" id="main-card">
+
+    <!-- STEP 1: DC -->
+    <div class="panel active" id="p1">
+      <h1 class="ct">เลือก DC สาขา</h1>
+      <p class="cs"><i class="ti ti-map-2" style="font-size:15px"></i>กรุณาเลือกสาขาที่ต้องการรายงาน</p>
+      <div class="fl"><i class="ti ti-building-warehouse"></i>DC / สาขา</div>
+      <select id="dc-select" onchange="app.dc=this.value; enBtn('bn1', !!this.value)">
+        <option value="">— เลือกสาขา —</option>
+      </select>
+      <div class="brow">
+        <button class="btn-primary" id="bn1" onclick="go(2)" disabled>ถัดไป <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 2: หัวข้อหลัก -->
+    <div class="panel" id="p2">
+      <h1 class="ct">เลือกหัวข้อหลัก</h1>
+      <p class="cs" id="p2s"><i class="ti ti-tags" style="font-size:15px"></i>เลือกหัวข้อที่ต้องการรายงาน</p>
+      <div class="tag-bar" id="tbar"></div>
+      <div class="tgrid" id="tgrid"></div>
+      <div class="brow">
+        <button class="btn-back" onclick="go(1)"><i class="ti ti-arrow-left"></i>ย้อนกลับ</button>
+        <button class="btn-primary" id="bn2" onclick="go(3)" disabled>ถัดไป <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 3: หัวข้อย่อย -->
+    <div class="panel" id="p3">
+      <h1 class="ct" id="p3t">หัวข้อย่อย</h1>
+      <p class="cs" id="p3s"></p>
+      <div class="sub-list" id="slist"></div>
+      <div class="brow">
+        <button class="btn-back" onclick="go(2)"><i class="ti ti-arrow-left"></i>ย้อนกลับ</button>
+        <button class="btn-primary" id="bn3" onclick="go(4)" disabled>ถัดไป <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 4: ตัวเลือก -->
+    <div class="panel" id="p4">
+      <h1 class="ct">เลือกตัวเลือก</h1>
+      <p class="cs" id="p4s"></p>
+      <div class="chip-grid" id="cgrid"></div>
+      <p class="hint"><i class="ti ti-info-circle"></i>เลือกได้หลายตัวเลือก หรือข้ามได้เลย</p>
+      <div class="brow">
+        <button class="btn-back" onclick="go(3)"><i class="ti ti-arrow-left"></i>ย้อนกลับ</button>
+        <button class="btn-primary" onclick="go(5)">ถัดไป <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <!-- STEP 5: รายละเอียด -->
+    <div class="panel" id="p5">
+      <h1 class="ct">รายละเอียดเพิ่มเติม</h1>
+      <p class="cs" id="p5s"></p>
+      <div class="fl"><i class="ti ti-pencil"></i>อธิบายรายละเอียด (ถ้ามี)</div>
+      <textarea id="det" placeholder="เช่น สาเหตุ ผลกระทบ หรือสิ่งที่ต้องการ..."></textarea>
+
+      <!-- แนบรูป (แสดงเฉพาะหัวข้อ สถานที่ และ อุปกรณ์การทำงาน) -->
+      <div id="img-section" style="display:none; margin-top:16px;">
+        <div class="fl"><i class="ti ti-photo"></i>แนบรูปภาพ (ไม่บังคับ · ไม่เกิน 1 MB/รูป)</div>
+        <div class="img-upload-area" id="upload-area">
+          <input type="file" accept="image/*" multiple id="file-input" onchange="handleFiles(this.files)">
+          <div class="img-upload-icon"><i class="ti ti-camera"></i></div>
+          <div class="img-upload-hint"><strong>คลิกเพื่อเลือกรูป</strong> หรือลากมาวาง</div>
+          <div class="img-upload-hint" style="margin-top:2px">JPG, PNG, HEIC · ไม่เกิน 1 MB ต่อรูป</div>
+        </div>
+        <div class="img-err" id="img-err"><i class="ti ti-alert-circle"></i> <span id="img-err-msg"></span></div>
+        <div class="img-preview-grid" id="preview-grid"></div>
+      </div>
+
+      <div class="brow">
+        <button class="btn-back" onclick="go(4)"><i class="ti ti-arrow-left"></i>ย้อนกลับ</button>
+        <button class="btn-primary" onclick="saveEntry()"><i class="ti ti-device-floppy"></i>บันทึกหัวข้อนี้</button>
+      </div>
+    </div>
+
+    <!-- CHOICE: เพิ่มหรือส่ง -->
+    <div class="panel" id="pc">
+      <h1 class="ct"><i class="ti ti-circle-check" style="color:var(--ok)"></i> บันทึกแล้ว!</h1>
+      <p class="cs" id="pcs"></p>
+      <div class="choice-box">
+        <div class="cbox-title"><i class="ti ti-help-circle"></i>ต้องการทำอะไรต่อ?</div>
+        <div class="cg">
+          <button class="cbtn" onclick="addMore()"><i class="ti ti-circle-plus"></i>เพิ่มหัวข้ออื่น</button>
+          <button class="cbtn" onclick="go(6)"><i class="ti ti-send"></i>ส่งรายงาน</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6: ยืนยันและส่ง -->
+    <div class="panel" id="p6">
+      <h1 class="ct">ตรวจสอบและส่ง</h1>
+      <p class="cs" id="p6s"></p>
+      <div id="elist"></div>
+      <div class="brow">
+        <button class="btn-back" onclick="addMore()"><i class="ti ti-circle-plus"></i>เพิ่มหัวข้อ</button>
+        <button class="btn-success" id="bnsend" onclick="submitForm()"><i class="ti ti-send"></i>ส่งรายงานทั้งหมด</button>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+</main>
+
+<script>
+/* ================================================================
+   CONFIG — แก้ไขได้ที่นี่ที่เดียว
+================================================================ */
+const CONFIG = {
+
+  SHEET_ID:        "1w2_pCzkfowqhBzQM7NPUkwMEmWsPr7_FL75hojOCo8s",
+  SHEET_NAME:      "Reporting Channel 2026",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyM49XSWnFvGDAtc8Eo_YODbcU_5CZXCg2ST6rlvR6PZQWhBfjBLN90dHOUxfsBUXX_RQ/exec",
+
+  DC_LIST: [
+    "CDC บางนา","DC กระบี่","DC กาญจนบุรี","DC กาฬสินธุ์","DC ขอนแก่น",
+    "DC โคราช","DC จันทบุรี","DC ฉะเชิงเทรา","DC ชลบุรี","DC ชะอำ",
+    "DC ชัยนาท","DC ชัยภูมิ","DC ชุมพร","DC เชียงราย","DC เชียงใหม่",
+    "DC ตาก","DC ทุ่งสง","DC นครปฐม","DC นครพนม","DC นครศรีธรรมราช",
+    "DC นครสวรรค์","DC น่าน","DC บุรีรัมย์","DC ปราจีนบุรี","DC ปากช่อง",
+    "DC ฝาง","DC พะเยา","DC พังงา","DC พัทยา","DC พัทลุง",
+    "DC พิจิตร","DC พิษณุโลก","DC พุทธมณฑลสาย 3","DC เพชรบูรณ์","DC แพร่",
+    "DC ภูเก็ต","DC มุกดาหาร","DC แม่สาย","DC แม่ฮ่องสอน","DC ยโสธร",
+    "DC ร้อยเอ็ด","DC ระยอง","DC รังสิต","DC ราชบุรี","DC ลพบุรี",
+    "DC ลำปาง","DC ลำพูน","DC ศรีสะเกษ","DC สกลนคร","DC สมุทรสาคร",
+    "DC สระบุรี","DC สุโขทัย","DC สุพรรณบุรี","DC สุราษฎร์","DC สุรินทร์",
+    "DC สุวรรณภูมิ","DC หนองคาย","DC หาดใหญ่","DC อยุธยา","DC อุดรธานี",
+    "DC อุตรดิตถ์","DC อุบลราชธานี"
+  ],
+
+  /* ================================================================
+     TOPICS
+     แก้ไขหัวข้อ / หัวข้อย่อย / ตัวเลือกได้ที่นี่
+     icon: ค้นหาได้ที่ https://tabler.io/icons
+  ================================================================ */
+  TOPICS: [
+    {
+      id: "สถานที่", icon: "ti-map-pin",
+      subs: [
+        { l: "ปัญหาด้านพื้นที่ใช้งาน",
+          opts: ["พื้นที่จัดเก็บไม่เพียงพอ","พื้นที่แคบ","จุดรับ–ส่งสินค้าไม่เหมาะสม","ไม่มีพื้นที่แยกสินค้า"] },
+        { l: "ปัญหาด้านความปลอดภัย",
+          opts: ["ระบบไฟฟ้า","กล้องวงจรปิดไม่ครอบคลุม","จุดเสี่ยงอุบัติเหตุ"] },
+        { l: "ปัญหาด้านความสะอาดและสภาพแวดล้อม",
+          opts: ["พื้นที่สกปรก มีฝุ่นหรือกลิ่น","ห้องน้ำไม่พร้อมใช้งาน","แสงสว่างไม่เพียงพอ","ระบายอากาศไม่ดี"] },
+        { l: "ปัญหาด้านระบบและสาธารณูปโภค",
+          opts: ["อินเทอร์เน็ตไม่เสถียร","ไฟดับบ่อย","ระบบน้ำรั่ว","อุปกรณ์สำนักงานชำรุด"] },
+        { l: "ปัญหาด้านภาพลักษณ์องค์กร",
+          opts: ["ป้ายบริษัทชำรุด","การจัดพื้นที่รับลูกค้าไม่เหมาะสม","จุดจอดรถไม่เพียงพอ"] }
+      ]
+    },
+    {
+      id: "รถกระจาย", icon: "ti-truck-delivery",
+      subs: [
+        { l: "ปัญหาด้านการวางแผนเส้นทาง", opts: [] },
+        { l: "ปัญหาด้านการใช้รถไม่คุ้มค่า",  opts: [] },
+        { l: "ปัญหาด้านความพร้อมของรถ",
+          opts: ["รถเสียระหว่างวิ่ง","ระบบทำความเย็นเสีย","ยาง/แบตเตอรี่เสื่อม","เอกสารรถหมดอายุ"] },
+        { l: "ปัญหาด้านพนักงานขับรถ",
+          opts: ["ขาดวินัยเวลา","ใช้น้ำมันผิดปกติ","ปฏิเสธงาน","ขาดความรู้เส้นทาง"] },
+        { l: "ปัญหาด้านเอกสารและระบบ",
+          opts: ["ปิดงานในระบบช้า","เอกสารนำกลับ","กลับมาล่าช้า"] }
+      ]
+    },
+    {
+      id: "คน", icon: "ti-users-group",
+      subs: [
+        { l: "ปัญหาด้านวินัยการทำงาน",
+          opts: ["มาทำงานสาย","ขาด ลา บ่อย","ละเลยหน้าที่","ไม่ปฏิบัติตาม SOP"] },
+        { l: "ปัญหาด้านทัศนคติ",
+          opts: ["ไม่รับผิดชอบงาน","ต่อต้านการเปลี่ยนแปลง","ไม่ให้ความร่วมมือ","ทำงานแบบขอไปที"] },
+        { l: "ปัญหาด้านความรู้และทักษะ",
+          opts: ["ใช้ระบบไม่เป็น","ขาดทักษะการแก้ปัญหา","ไม่รู้มาตรฐานงาน","เรียนรู้งานช้า"] },
+        { l: "ปัญหาด้านกำลังคน",
+          opts: ["คนไม่พอ","Turnover สูง","จัดคนไม่เหมาะกับงาน","ขาดคนช่วง Peak"] },
+        { l: "ปัญหาด้านแรงจูงใจ",
+          opts: ["ไม่มีเป้าหมาย","ค่าตอบแทนไม่จูงใจ","เหนื่อยสะสม","รู้สึกไม่เติบโต"] },
+        { l: "แจ้งเรื่องส่อทุจริต",
+          opts: ["พนักงาน DC","รถกระจาย"] }
+      ]
+    },
+    {
+      id: "อุปกรณ์การทำงาน", icon: "ti-tool",
+      subs: [
+        { l: "อุปกรณ์ไม่เพียงพอ",
+          opts: ["ใช้อุปกรณ์ร่วมกันหลายคน","ไม่มีอุปกรณ์สำรอง","ขาดอุปกรณ์ช่วงงานเร่งด่วน","อุปกรณ์ไม่พอต่อจำนวนพนักงาน"] },
+        { l: "อุปกรณ์ชำรุด",
+          opts: ["เครื่องสแกนเสีย","คอมพิวเตอร์ค้าง","เครื่องพิมพ์เสีย","อุปกรณ์ไฟฟ้าขัดข้อง"] },
+        { l: "ปัญหาการดูแลรักษาอุปกรณ์",
+          opts: ["ไม่ทำความสะอาดอุปกรณ์","ใช้งานผิดประเภท","ไม่มีผู้รับผิดชอบดูแล","แจ้งซ่อมล่าช้า"] },
+        { l: "ปัญหาการเบิก–จ่ายอุปกรณ์",
+          opts: ["เบิกเกินความจำเป็น","อุปกรณ์ส่งมาล่าช้า","มาไม่ครบ","อุปกรณ์สูญหาย"] },
+        { l: "ปัญหาด้านระบบ IT",
+          opts: ["อินเทอร์เน็ตช้า","ระบบล่ม","เครื่องสแกนไม่เชื่อมต่อ","Wi-Fi ไม่ครอบคลุม"] }
+      ]
+    },
+    {
+      id: "ขั้นตอนการทำงาน", icon: "ti-list-check", wide: true,
+      subs: [
+        { l: "ไม่เข้าใจขั้นตอนการทำงาน",
+          opts: ["รับสินค้า","กระจาย","ขนย้าย","การตั้งเบิก"] },
+        { l: "เสนอปรับเพิ่มขั้นตอนการทำงาน",
+          opts: ["รับสินค้า","กระจาย","ขนย้าย","การตั้งเบิก"] },
+        { l: "เสนอปรับลดขั้นตอนการทำงาน",
+          opts: ["รับสินค้า","กระจาย","ขนย้าย","การตั้งเบิก"] },
+        { l: "ขั้นตอนงานซ้ำซ้อน",
+          opts: ["ขออนุมัติหลายระบบ","ขั้นตอนเกินความจำเป็น","ทำเอกสารซ้ำ"] },
+        { l: "ปัญหาความล่าช้าในกระบวนการ",
+          opts: ["อนุมัติหลายขั้นตอน","รอเอกสาร","รอผู้อนุมัติ","ระบบช้า"] },
+        { l: "ปัญหาการเปลี่ยนแปลงขั้นตอนงาน",
+          opts: ["เปลี่ยนวิธีทำงานบ่อย","ไม่สื่อสาร SOP ใหม่","ไม่มี Training ก่อนใช้งานจริง","พนักงานสับสน"] }
+      ]
+    }
+  ]
+};
+/* ================================================================
+   END CONFIG
+================================================================ */
+
+/* App state */
+const app = { dc:"", topic:"", sub:"", opts:[], entries:[], images:[], editingIdx:-1 };
+
+/* Init DC dropdown */
+const dcSel = document.getElementById("dc-select");
+CONFIG.DC_LIST.forEach(dc => {
+  const o = document.createElement("option");
+  o.value = o.textContent = dc;
+  dcSel.appendChild(o);
+});
+
+/* Helpers */
+function enBtn(id, v) { const e = document.getElementById(id); if (e) e.disabled = !v; }
+function showP(id) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+function setSteps(n) {
+  [1,2,3,4,5,6].forEach(i => {
+    const el = document.getElementById("s" + i);
+    el.classList.remove("active","done");
+    if (i < n) el.classList.add("done");
+    else if (i === n) el.classList.add("active");
+  });
+}
+function tcfg(id) { return CONFIG.TOPICS.find(t => t.id === id); }
+
+function go(n) {
+  setSteps(n);
+  if (n === 2) renderTopics();
+  if (n === 3) renderSubs();
+  if (n === 4) renderChips();
+  if (n === 5) {
+    // แสดง img-section เฉพาะ สถานที่ และ อุปกรณ์การทำงาน
+    const showImg = (app.topic === "สถานที่" || app.topic === "อุปกรณ์การทำงาน");
+    document.getElementById("img-section").style.display = showImg ? "block" : "none";
+  }
+  if (n === 6) renderSummary();
+  const map = {1:"p1",2:"p2",3:"p3",4:"p4",5:"p5",6:"p6"};
+  showP(map[n]);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* Step 2 */
+function renderTopics() {
+  const used = app.entries.map(e => e.topic);
+  document.getElementById("tbar").innerHTML = used.map(t =>
+    `<span class="tag"><i class="ti ${tcfg(t).icon}" style="font-size:13px"></i>${t}</span>`
+  ).join("");
+  document.getElementById("p2s").innerHTML = used.length
+    ? `<i class="ti ti-check-circle" style="font-size:15px;color:var(--ok)"></i>เพิ่มแล้ว ${used.length} หัวข้อ — เลือกหัวข้อเพิ่มเติม`
+    : `<i class="ti ti-tags" style="font-size:15px"></i>เลือกหัวข้อที่ต้องการรายงาน`;
+  const g = document.getElementById("tgrid");
+  g.innerHTML = "";
+  CONFIG.TOPICS.forEach(t => {
+    const d = document.createElement("div");
+    d.className = "tc" + (t.wide ? " wide" : "") + (used.includes(t.id) ? " dis" : "");
+    d.dataset.id = t.id;
+    d.innerHTML = `<div class="tci"><i class="ti ${t.icon}"></i></div><span class="tcn">${t.id}</span>`;
+    d.onclick = () => {
+      document.querySelectorAll(".tc").forEach(c => c.classList.remove("sel"));
+      d.classList.add("sel");
+      app.topic = t.id;
+      enBtn("bn2", true);
+    };
+    g.appendChild(d);
+  });
+  app.topic = "";
+  enBtn("bn2", false);
+}
+
+/* Step 3 */
+function renderSubs() {
+  const cfg = tcfg(app.topic);
+  document.getElementById("p3t").textContent = "หัวข้อย่อย: " + app.topic;
+  document.getElementById("p3s").innerHTML = `<i class="ti ${cfg.icon}" style="font-size:15px"></i>เลือก 1 หัวข้อย่อย`;
+  const list = document.getElementById("slist");
+  list.innerHTML = "";
+  cfg.subs.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "sub-item";
+    d.innerHTML = `<div class="snum">${i+1}</div><span class="stxt">${s.l}</span>`;
+    d.onclick = () => {
+      document.querySelectorAll(".sub-item").forEach(x => {
+        x.classList.remove("sel");
+        x.querySelector(".snum").style.cssText = "";
+      });
+      d.classList.add("sel");
+      d.querySelector(".snum").style.background = "var(--br)";
+      d.querySelector(".snum").style.color = "#fff";
+      app.sub = s.l;
+      enBtn("bn3", true);
+    };
+    list.appendChild(d);
+  });
+  app.sub = "";
+  enBtn("bn3", false);
+}
+
+/* Step 4 */
+function renderChips() {
+  const cfg = tcfg(app.topic);
+  const sub = cfg.subs.find(s => s.l === app.sub);
+  document.getElementById("p4s").innerHTML =
+    `<i class="ti ti-corner-down-right" style="font-size:15px"></i>${app.sub}`;
+  const g = document.getElementById("cgrid");
+  g.innerHTML = "";
+  app.opts = [];
+  if (!sub || !sub.opts.length) {
+    g.innerHTML = `<div style="padding:10px 0;font-size:13.5px;color:#aac8cc;display:flex;align-items:center;gap:6px"><i class="ti ti-info-circle" style="font-size:16px"></i>ไม่มีตัวเลือกเพิ่มเติม — กด "ถัดไป" ได้เลย</div>`;
+    return;
+  }
+  sub.opts.forEach(o => {
+    const c = document.createElement("div");
+    c.className = "chip";
+    c.innerHTML = `<i class="ti ti-check"></i>${o}`;
+    c.onclick = () => {
+      c.classList.toggle("sel");
+      app.opts = Array.from(g.querySelectorAll(".chip.sel")).map(x => x.textContent.trim());
+    };
+    g.appendChild(c);
+  });
+}
+
+/* Image upload */
+const TOPICS_WITH_IMG = ["สถานที่", "อุปกรณ์การทำงาน"];
+
+function handleFiles(files) {
+  const errEl = document.getElementById("img-err");
+  const errMsg = document.getElementById("img-err-msg");
+  errEl.style.display = "none";
+  Array.from(files).forEach(file => {
+    if (file.size > 1024 * 1024) {
+      errMsg.textContent = `"${file.name}" ขนาดเกิน 1 MB — ไม่ได้รับไฟล์นี้`;
+      errEl.style.display = "block";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      app.images.push({ name: file.name, data: e.target.result });
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById("file-input").value = "";
+}
+
+function renderPreviews() {
+  const grid = document.getElementById("preview-grid");
+  grid.innerHTML = "";
+  app.images.forEach((img, i) => {
+    const div = document.createElement("div");
+    div.className = "img-thumb";
+    div.innerHTML = `<img src="${img.data}" alt="${img.name}">
+      <button class="img-thumb-del" onclick="removeImg(${i})" title="ลบรูป">✕</button>`;
+    grid.appendChild(div);
+  });
+}
+
+function removeImg(i) {
+  app.images.splice(i, 1);
+  renderPreviews();
+}
+
+function resetImgUI() {
+  app.images = [];
+  document.getElementById("preview-grid").innerHTML = "";
+  document.getElementById("file-input").value = "";
+  document.getElementById("img-err").style.display = "none";
+}
+
+// Drag & drop
+(function(){
+  const ua = document.getElementById("upload-area");
+  if (!ua) return;
+  ua.addEventListener("dragover", e => { e.preventDefault(); ua.classList.add("drag-over"); });
+  ua.addEventListener("dragleave", () => ua.classList.remove("drag-over"));
+  ua.addEventListener("drop", e => { e.preventDefault(); ua.classList.remove("drag-over"); handleFiles(e.dataTransfer.files); });
+})();
+
+/* Save entry */
+function saveEntry() {
+  const entry = {
+    topic: app.topic, sub: app.sub,
+    opts: [...app.opts],
+    detail: document.getElementById("det").value.trim(),
+    images: [...app.images]
+  };
+
+  if (app.editingIdx >= 0) {
+    // แก้ไขรายการเดิม
+    app.entries[app.editingIdx] = entry;
+    app.editingIdx = -1;
+    resetImgUI();
+    document.getElementById("det").value = "";
+    go(6);
+    return;
+  }
+
+  // เพิ่มรายการใหม่
+  app.entries.push(entry);
+  resetImgUI();
+  setSteps(5);
+  document.getElementById("pcs").innerHTML =
+    `<i class="ti ti-check" style="color:var(--ok)"></i>บันทึก "<strong>${app.topic}</strong>" แล้ว (รวม ${app.entries.length} หัวข้อ)`;
+  showP("pc");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function addMore() {
+  setSteps(2);
+  renderTopics();
+  showP("p2");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* Step 6 summary */
+function renderSummary() {
+  document.getElementById("p6s").innerHTML =
+    `<i class="ti ti-building-store" style="font-size:15px"></i>${app.dc} &nbsp;·&nbsp; ${app.entries.length} หัวข้อ`;
+  document.getElementById("elist").innerHTML = app.entries.map((e, i) => {
+    const c = tcfg(e.topic);
+    const imgsHtml = (e.images && e.images.length)
+      ? `<div class="ec-imgs">${e.images.map(img =>
+          `<img class="ec-img-thumb" src="${img.data}" alt="${img.name}" onclick="window.open('${img.data}')">`
+        ).join("")}</div>`
+      : "";
+    return `<div class="ec">
+      <button class="btn-edit-entry" onclick="editEntry(${i})"><i class="ti ti-edit"></i>แก้ไข</button>
+      <div class="en">${i+1}</div>
+      <div class="eb">
+        <div class="et"><i class="ti ${c.icon}"></i>${e.topic}</div>
+        <div class="esb"><i class="ti ti-corner-down-right"></i>${e.sub}</div>
+        ${e.opts.length ? `<div class="echips">${e.opts.map(o=>`<span class="echip">${o}</span>`).join("")}</div>` : ""}
+        ${e.detail ? `<div class="edt">${e.detail}</div>` : ""}
+        ${imgsHtml}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function editEntry(i) {
+  const e = app.entries[i];
+  app.editingIdx = i;
+  app.topic = e.topic;
+  app.sub   = e.sub;
+  app.opts  = [...e.opts];
+  app.images = e.images ? [...e.images] : [];
+  document.getElementById("det").value = e.detail || "";
+
+  // แสดง/ซ่อน img-section
+  const showImg = (app.topic === "สถานที่" || app.topic === "อุปกรณ์การทำงาน");
+  document.getElementById("img-section").style.display = showImg ? "block" : "none";
+  renderPreviews();
+
+  setSteps(5);
+  showP("p5");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* Submit */
+async function submitForm() {
+  const btn = document.getElementById("bnsend");
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> กำลังส่ง...';
+
+  const timestamp = new Date().toLocaleString("th-TH");
+
+  // ── 1. ส่งข้อมูล text และรับ rowNumbers กลับมา ──
+  const entries = app.entries.map(e => ({
+    topic:      e.topic,
+    sub:        e.sub,
+    opts:       e.opts,
+    detail:     e.detail,
+    imageCount: (e.images || []).length
+  }));
+
+  let rowNumbers = [];
+  try {
+    const res = await jsonpSend({ timestamp, dc: app.dc, entries });
+    if (res && res.rowNumbers) rowNumbers = res.rowNumbers;
+  } catch(err) {
+    console.warn("text send error:", err);
+  }
+
+  // แสดง success ทันที
+  document.getElementById("main-card").innerHTML = `
+    <div class="success-screen">
+      <i class="ti ti-circle-check sico"></i>
+      <h2>ส่งรายงานเรียบร้อย!</h2>
+      <p>${app.dc}<br>${app.entries.length} หัวข้อ · บันทึกและแจ้งเตือนทีมงานแล้ว</p>
+      <div style="margin-top:22px">
+        <button class="btn-primary" onclick="location.reload()" style="margin:auto">
+          <i class="ti ti-refresh"></i>รายงานใหม่
+        </button>
+      </div>
+    </div>`;
+  setSteps(6);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // ── 2. ส่งรูปใน background พร้อม rowNumber ──
+  for (let i = 0; i < app.entries.length; i++) {
+    const e = app.entries[i];
+    if (!e.images || e.images.length === 0) continue;
+    const rowNumber = rowNumbers[i] || 0;
+    for (const img of e.images) {
+      try {
+        const compressed = await compressImage(img.data, 200, 0.1);
+        console.log("compressed size:", compressed.length, "chars");
+        const res = await jsonpSend({
+          type:       "image",
+          dc:         app.dc,
+          topic:      e.topic,
+          sub:        e.sub,
+          timestamp,
+          imgName:    img.name,
+          imgData:    compressed,
+          rowNumber:  rowNumber
+        });
+        console.log("image send result:", JSON.stringify(res));
+      } catch(err) {
+        console.warn("image error:", err);
+      }
+    }
+  }
+}
+
+// compress รูปด้วย canvas
+function compressImage(dataUrl, maxSize, quality) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize; }
+        else       { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+function jsonpSend(payload) {
+  return new Promise((resolve) => {
+    const cbName  = "nimCb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url     = CONFIG.APPS_SCRIPT_URL + "?callback=" + cbName + "&data=" + encoded;
+    const script  = document.createElement("script");
+    script.src    = url;
+    window[cbName] = (res) => {
+      delete window[cbName];
+      if (document.head.contains(script)) document.head.removeChild(script);
+      resolve(res);
+    };
+    script.onerror = () => resolve({ status: "error" });
+    setTimeout(() => resolve({ status: "timeout" }), 15000);
+    document.head.appendChild(script);
+  });
+}
+</script>
+</body>
+</html>
